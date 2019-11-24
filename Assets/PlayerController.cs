@@ -11,18 +11,19 @@ public class PlayerController : MonoBehaviour
 
     public CryptoCounter cryptoWallet;
     private PathFollower follow;
-    private BoxCollider playerCollider;
+    private Collider playerCollider;
 
     public float jumpMagnitude = 1.0f;
     public float initialVerticalMagnitude = 10.0f;
     public float gravityMagnitude = 2.0f;
+    public float initialVerticalBoost = 5.0f;
     private bool jumping = false;
 
     void Start()
     {
         gamepad = Gamepad.current;
         follow = GetComponent<PathFollower>();
-        playerCollider = GetComponent<BoxCollider>();
+        playerCollider = GetComponent<Collider>();
     }
 
     // Update is called once per frame
@@ -48,12 +49,15 @@ public class PlayerController : MonoBehaviour
     {
         jumping = true;
         follow.toggleFollow(false); // Stop following path
-        playerCollider.enabled = true;
         float verticalMagnitude = initialVerticalMagnitude;
+        playerCollider.enabled = true;
+
+        int numFrames = 0;
 
         while (jumping)
-        {
-            transform.position += new Vector3(follow.speed, verticalMagnitude, 0) / 60;
+        { 
+            numFrames++;
+            transform.position += new Vector3(follow.speed, (verticalMagnitude * Mathf.Max((initialVerticalBoost / numFrames), 1)), 0) / 60;
             verticalMagnitude -= (9.8f / 60) * gravityMagnitude;
             yield return null;
         } 
