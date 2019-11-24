@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     public float gravityMagnitude = 2.0f;
     public float initialVerticalBoost = 5.0f;
     private bool jumping = false;
+    private bool freeFalling = false;
 
     void Start()
     {
@@ -30,13 +31,13 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // If presses X, buy/sell
-        if (gamepad.xButton.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame)
+        if (Keyboard.current.enterKey.wasPressedThisFrame || (gamepad != null && gamepad.xButton.wasPressedThisFrame))
         {
             cryptoWallet.buyOrSellCrypto(transform.position.y);
         }
 
         // If presses A, jump
-        if (gamepad.aButton.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame || (gamepad != null && gamepad.aButton.wasPressedThisFrame))
         {
             if (!jumping)
             {
@@ -48,6 +49,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator jump()
     {
         jumping = true;
+        freeFalling = false;
         follow.toggleFollow(false); // Stop following path
         float verticalMagnitude = initialVerticalMagnitude;
         playerCollider.enabled = true;
@@ -63,10 +65,33 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
+    public void freeFall()
+    {
+        if (!jumping)
+        {
+            StartCoroutine(StartFreeFall());
+        }
+    }
+
+    private IEnumerator StartFreeFall()
+    {
+        Debug.Log("Free falling");
+        freeFalling = true;
+        playerCollider.enabled = true;
+        float verticalMagnitude = -2;
+        while (freeFalling)
+        {
+            transform.position += new Vector3(follow.speed * 0.5f, verticalMagnitude, 0) / 60;
+            verticalMagnitude -= (9.8f / 60) * (gravityMagnitude + 5);
+            yield return null;
+        }
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         // Not jumping anymore
         jumping = false;
+        freeFalling = false;
         Debug.Log("collide");
 
         follow.toggleFollow(true);

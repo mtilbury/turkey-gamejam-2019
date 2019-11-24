@@ -12,6 +12,7 @@ namespace PathCreation.Examples
         public float lerpFraction;
         public float slerpFraction;
 
+        private Vector3 lastPosition;
         private bool follow = true;
         float distanceTravelled;
 
@@ -28,13 +29,28 @@ namespace PathCreation.Examples
             if (pathCreator != null)
             {
                 distanceTravelled += speed * Time.deltaTime;
+                Vector3 newPosition = pathCreator.path.GetPointAtDistance(distanceTravelled, endOfPathInstruction);
                 if (follow)
                 {
-                    transform.position = transform.position + (pathCreator.path.GetPointAtDistance(distanceTravelled, endOfPathInstruction) - transform.position) * lerpFraction;
+                    float multiplier = 1.0f;
+                    if (lastPosition != null)
+                    {
+                        if (lastPosition == newPosition)
+                        {
+                            newPosition = new Vector3(newPosition.x + 0.1f, newPosition.y, transform.position.z);
+                            multiplier = 2f;
+                        }
+                    }
+
+                    transform.position = transform.position + (newPosition - transform.position) * lerpFraction * multiplier;
+                    transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+
                     //transform.rotation = pathCreator.path.GetRotationAtDistance(distanceTravelled, endOfPathInstruction);
                     transform.rotation = Quaternion.Slerp(transform.rotation, pathCreator.path.GetRotationAtDistance(distanceTravelled, endOfPathInstruction), slerpFraction);
                 }
+                lastPosition = newPosition;
             }
+
         }
 
         // If the path changes during the game, update the distance travelled so that the follower's position on the new path
@@ -52,5 +68,7 @@ namespace PathCreation.Examples
                 distanceTravelled = pathCreator.path.GetClosestDistanceAlongPath(transform.position);
             }
         }
+
+        
     }
 }

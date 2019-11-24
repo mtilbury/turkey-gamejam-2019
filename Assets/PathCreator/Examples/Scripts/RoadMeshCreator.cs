@@ -16,10 +16,11 @@ namespace PathCreation.Examples {
         public float textureTiling = 1;
 
         [SerializeField, HideInInspector]
-        GameObject meshHolder;
+        public GameObject meshHolder;
 
         MeshFilter meshFilter;
         MeshRenderer meshRenderer;
+        MeshCollider meshCollider;
         Mesh mesh;
 
         protected override void PathUpdated () {
@@ -28,6 +29,14 @@ namespace PathCreation.Examples {
                 AssignMaterials ();
                 CreateRoadMesh ();
             }
+
+            meshCollider.sharedMesh = null;
+            meshCollider.sharedMesh = mesh;
+        }
+
+        public void updatePath()
+        {
+            PathUpdated();
         }
 
         void CreateRoadMesh () {
@@ -120,9 +129,11 @@ namespace PathCreation.Examples {
         // Add MeshRenderer and MeshFilter components to this gameobject if not already attached
         void AssignMeshComponents () {
 
-            if (meshHolder == null) {
-                meshHolder = new GameObject ("Road Mesh Holder");
+            if (meshHolder == null)
+            {
+                meshHolder = new GameObject("Road Mesh Holder");
             }
+
 
             meshHolder.transform.rotation = Quaternion.identity;
             meshHolder.transform.position = Vector3.zero;
@@ -136,12 +147,24 @@ namespace PathCreation.Examples {
                 meshHolder.gameObject.AddComponent<MeshRenderer> ();
             }
 
+            if (!meshHolder.GetComponent<MeshCollider>())
+            {
+                meshHolder.gameObject.AddComponent<MeshCollider>();
+            }
+
+
             meshRenderer = meshHolder.GetComponent<MeshRenderer> ();
             meshFilter = meshHolder.GetComponent<MeshFilter> ();
+            meshCollider = meshHolder.GetComponent<MeshCollider>();
             if (mesh == null) {
                 mesh = new Mesh ();
             }
             meshFilter.sharedMesh = mesh;
+            meshCollider.sharedMesh = null;
+            meshCollider.sharedMesh = mesh;
+
+            meshCollider.enabled = false;
+            meshCollider.enabled = true;
         }
 
         void AssignMaterials () {
