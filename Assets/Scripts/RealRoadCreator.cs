@@ -14,75 +14,84 @@ public class RealRoadCreator : MonoBehaviour
 
     public GameObject player;
     private PathFollower playerPathFollower;
-    private List<PathCreator> pathCreators;
-    private List<Vector3> finalPositions;
-    private List<RoadMeshCreator> roadMeshes;
+
+    public List<PathCreator> pathCreators;
+    public List<Vector3> finalPositions;
+    public List<RoadMeshCreator> roadMeshes;
     private int currentPath = 0;
+
+    public bool create = false;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        transforms = new List<Transform>();
-        pathCreators = new List<PathCreator>();
-        finalPositions = new List<Vector3>();
-        roadMeshes = new List<RoadMeshCreator>();
         playerPathFollower = player.GetComponent<PathFollower>();
 
-        // Get data
-        string path = "Assets/Data/priceData.csv";
-
-        StreamReader reader = new StreamReader(path);
-        string priceDataRaw = reader.ReadToEnd();
-        reader.Close();
-
-        var priceData = priceDataRaw.Split('\n');
-        //Transform[] transforms = new Transform[priceData.Length];
-        
-
-        float xDistance = 0.0f;
-        //int curTransform = 0;
-        foreach(string price in priceData)
+        if (create)
         {
-            if(price == "")
+            transforms = new List<Transform>();
+            pathCreators = new List<PathCreator>();
+            finalPositions = new List<Vector3>();
+            roadMeshes = new List<RoadMeshCreator>();
+            
+
+            // Get data
+            string path = "Assets/Data/priceData.csv";
+
+            StreamReader reader = new StreamReader(path);
+            string priceDataRaw = reader.ReadToEnd();
+            reader.Close();
+
+            var priceData = priceDataRaw.Split('\n');
+            //Transform[] transforms = new Transform[priceData.Length];
+
+
+            float xDistance = 0.0f;
+            //int curTransform = 0;
+            foreach (string price in priceData)
             {
-                continue;
+                if (price == "")
+                {
+                    continue;
+                }
+                GameObject tempHusk = GameObject.Instantiate(emptyHusk);
+                tempHusk.transform.position = new Vector3(xDistance, float.Parse(price) * 3, 0);
+                transforms.Add(tempHusk.transform);
+                xDistance += Random.Range(5, 20);
+                //curTransform++;
             }
-            GameObject tempHusk = GameObject.Instantiate(emptyHusk);
-            tempHusk.transform.position = new Vector3(xDistance, float.Parse(price) * 3, 0);
-            transforms.Add(tempHusk.transform);
-            xDistance += Random.Range(5, 20);
-            //curTransform++;
+
+            updateBezier();
+
+            // Create bezier paths
+            // Get 5-10 points and make a path
+            int last = 0;
+            int next = 15;
+
+            while (last + next < transforms.Count)
+            {
+                // Instantiate a PathCreator
+                GameObject newRoadCreator = GameObject.Instantiate(roadCreator);
+
+                PathCreator newPathCreator = newRoadCreator.GetComponent<PathCreator>();
+                RoadMeshCreator newRoadMeshCreator = newRoadCreator.GetComponent<RoadMeshCreator>();
+
+                List<Transform> transformSlice = transforms.GetRange(last, next);
+
+                newPathCreator.bezierPath = new BezierPath(transformSlice);
+                newRoadMeshCreator.updatePath();
+
+                finalPositions.Add(transformSlice[transformSlice.Count - 1].position);
+                pathCreators.Add(newPathCreator);
+                roadMeshes.Add(newRoadMeshCreator);
+
+                last += next;
+                next = Random.Range(5, 10);
+
+            }
         }
-
-        updateBezier();
-
-        // Create bezier paths
-        // Get 5-10 points and make a path
-        int last = 0;
-        int next = 15;
-
-        while (last + next < transforms.Count)
-        {
-            // Instantiate a PathCreator
-            GameObject newRoadCreator = GameObject.Instantiate(roadCreator);
-
-            PathCreator newPathCreator = newRoadCreator.GetComponent<PathCreator>();
-            RoadMeshCreator newRoadMeshCreator = newRoadCreator.GetComponent<RoadMeshCreator>();
-
-            List<Transform> transformSlice = transforms.GetRange(last, next);
-
-            newPathCreator.bezierPath = new BezierPath(transformSlice);
-            newRoadMeshCreator.updatePath();
-
-            finalPositions.Add(transformSlice[transformSlice.Count - 1].position);
-            pathCreators.Add(newPathCreator);
-            roadMeshes.Add(newRoadMeshCreator);
-
-            last += next;
-            next = Random.Range(5, 10);
-
-        }
+        
 
         playerPathFollower.pathCreator = pathCreators[0];
     }
