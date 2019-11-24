@@ -5,6 +5,7 @@ using UnityEngine;
 public class VerticalMovementController : MonoBehaviour
 {
     public float movementSpeed;
+
     private int direction;
 
     // Start is called before the first frame update
@@ -27,4 +28,6 @@ public class VerticalMovementController : MonoBehaviour
         }
         direction++;
     }
+
+    //public void givePriceTarget
 }
