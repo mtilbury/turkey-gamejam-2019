@@ -8,6 +8,6 @@ public class FollowCameraAsCanvas : MonoBehaviour
 
     private void LateUpdate()
     {
-        transform.position = new Vector3(follow.position.x, transform.position.y, transform.position.z);
+        transform.position = new Vector3(follow.position.x + 60, transform.position.y, transform.position.z);
     }
 }

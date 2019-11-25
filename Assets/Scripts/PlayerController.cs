@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
     private bool jumping = false;
     private bool freeFalling = false;
 
+    public changeOnSell changer;
+
     void Start()
     {
         gamepad = Gamepad.current;
@@ -34,6 +36,7 @@ public class PlayerController : MonoBehaviour
         if (Keyboard.current.enterKey.wasPressedThisFrame || (gamepad != null && gamepad.xButton.wasPressedThisFrame))
         {
             cryptoWallet.buyOrSellCrypto(transform.position.y);
+            changer.toggleSprite();
         }
 
         // If presses A, jump
